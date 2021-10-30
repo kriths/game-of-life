@@ -25,3 +25,26 @@ canvas {
   background: #000a;
   color: deepskyblue;
 }
+
+#controls {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  margin: 10px;
+  padding: 10px;
+  background: #000c;
+  color: deepskyblue;
+  display: grid;
+  grid-template-columns: max-content max-content;
+  column-gap: 10px;
+}
+
+#controls-heading {
+  font-weight: bold;
+  grid-column: span 2 / span 2;
+  text-align: center;
+}
+
+.controls-key {
+  font-weight: bold;
+}

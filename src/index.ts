@@ -22,11 +22,37 @@ canvas.style.width = `${canvasWidth}px`;
 canvas.style.top = `-${canvasHeight * 0.05}px`;
 canvas.style.left = `-${canvasWidth * 0.05}px`;
 
-const grid = new Grid(canvas);
+// Application state
+let grid = new Grid(canvas);
+let nextIteration: number | null = null;
 
 function tick() {
   grid.tickAndRender();
-  setTimeout(tick, TICK_INTERVAL);
+  nextIteration = window.setTimeout(tick, TICK_INTERVAL);
 }
+
+function stop() {
+  window.clearTimeout(nextIteration);
+  nextIteration = null;
+}
+
+document.addEventListener('keypress', (e) => {
+  switch (e.key.toLowerCase()) {
+    case 'p':
+      if (nextIteration) {
+        stop();
+      } else {
+        tick();
+      }
+      break;
+    case 'r':
+      stop();
+      grid = new Grid(canvas);
+      tick();
+      break;
+    default:
+      // No further listeners
+  }
+});
 
 tick();
