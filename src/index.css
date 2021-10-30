@@ -1,0 +1,27 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+
+html, body, canvas {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background: black;
+  font-family: sans-serif;
+}
+
+canvas {
+  position: absolute;
+}
+
+#debug {
+  display: none;
+  position: absolute;
+  height: 100px;
+  width: 200px;
+  top: 0;
+  padding: 5px;
+  background: #000a;
+  color: deepskyblue;
+}
