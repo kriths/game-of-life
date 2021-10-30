@@ -1,4 +1,6 @@
 import Grid from './grid';
+import DragDirection from './dragListener/direction';
+import DragListener from './dragListener';
 
 const TICK_INTERVAL = 100;
 
@@ -25,6 +27,8 @@ function initCanvas(): HTMLCanvasElement {
 export default class App {
   private readonly canvas: HTMLCanvasElement;
 
+  private readonly dragListener: DragListener;
+
   private grid: Grid;
 
   private nextIteration?: number;
@@ -34,7 +38,15 @@ export default class App {
     this.grid = new Grid(this.canvas);
 
     this.tick = this.tick.bind(this);
+    this.dragListener = new DragListener(this.onDrag.bind(this), this.canvas);
     document.addEventListener('keypress', this.onKeypress.bind(this));
+  }
+
+  private onDrag(clientX: number, clientY: number, direction: DragDirection) {
+    const canvasBox = this.canvas.getBoundingClientRect();
+    const x = clientX - canvasBox.left;
+    const y = clientY - canvasBox.top;
+    this.grid.spawnBlinker(x, y, direction);
   }
 
   private onKeypress(e: KeyboardEvent) {

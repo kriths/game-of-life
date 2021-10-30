@@ -1,4 +1,5 @@
 import { circularMean } from './util/math';
+import DragDirection from './dragListener/direction';
 
 const SQUARE_SIZE = 4;
 
@@ -33,7 +34,7 @@ export default class Grid {
     for (let y = 0; y < this.height; y += 1) {
       for (let x = 0; x < this.width; x += 1) {
         const alive = Math.random() < 0.5;
-        this.grid[(y * this.width) + x] = alive ? (Math.random() * 360) : DEAD;
+        this.setCell(x, y, alive ? (Math.random() * 360) : DEAD);
       }
     }
   }
@@ -45,6 +46,10 @@ export default class Grid {
   private getCell(x: number, y: number): Cell {
     if (x < 0 || x > this.width || y < 0 || y > this.height) return DEAD;
     return this.getCellUnsafe(x, y);
+  }
+
+  private setCell(x: number, y: number, value: Cell) {
+    this.grid[(y * this.width) + x] = value;
   }
 
   /**
@@ -109,6 +114,25 @@ export default class Grid {
       const hueSum = aliveCells.reduce((a, b) => a + b, 0);
       const hueAvg = hueSum / aliveCells.length;
       document.getElementById('hue-avg').innerText = `${hueAvg}`;
+    }
+  }
+
+  public spawnBlinker(canvasX: number, canvasY: number, direction: DragDirection) {
+    const gridX = Math.round(canvasX / SQUARE_SIZE);
+    const gridY = Math.round(canvasY / SQUARE_SIZE);
+    const color = Math.random() * 360;
+
+    const glider = {
+      [DragDirection.TOP_RIGHT]: [[true, false, false], [true, false, true], [true, true, false]],
+      [DragDirection.BOT_RIGHT]: [[false, true, false], [false, false, true], [true, true, true]],
+      [DragDirection.BOT_LEFT]: [[false, true, true], [true, false, true], [false, false, true]],
+      [DragDirection.TOP_LEFT]: [[true, true, true], [true, false, false], [false, true, false]],
+    }[direction];
+
+    for (let x = 0; x < 3; x += 1) {
+      for (let y = 0; y < 3; y += 1) {
+        this.setCell(gridX - 1 + x, gridY - 1 + y, glider[x][y] ? color : DEAD);
+      }
     }
   }
 }
