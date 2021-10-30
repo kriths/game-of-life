@@ -3,6 +3,10 @@ import Grid from './grid';
 
 const TICK_INTERVAL = 100;
 
+if (process.env.NODE_ENV === 'development') {
+  document.getElementById('debug').style.display = 'block';
+}
+
 // Initialize canvas once when loading the page using the screen's size.
 // Create the canvas 10% bigger than the screen size and center it so that
 // it overflows roughly equally off all sides of the page.
