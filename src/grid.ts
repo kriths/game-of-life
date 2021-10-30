@@ -1,7 +1,6 @@
-import { circularMean, clampDeg } from './util/math';
+import { circularMean } from './util/math';
 
 const SQUARE_SIZE = 4;
-const COLOR_BANDS = 10;
 
 /**
  * Valid colors are integers in range [0, 360[
@@ -30,13 +29,11 @@ export default class Grid {
    * (Re-)initialize grid with random values.
    */
   private randomizeGrid() {
-    const colorBandSize = this.height / COLOR_BANDS;
-
     this.grid = new Int16Array(this.height * this.width);
     for (let y = 0; y < this.height; y += 1) {
       for (let x = 0; x < this.width; x += 1) {
         const alive = Math.random() < 0.5;
-        this.grid[(y * this.width) + x] = alive ? clampDeg((y / colorBandSize) * 360) : DEAD;
+        this.grid[(y * this.width) + x] = alive ? (Math.random() * 360) : DEAD;
       }
     }
   }
