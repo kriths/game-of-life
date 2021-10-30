@@ -104,5 +104,11 @@ export default class Grid {
 
     document.getElementById('time-tick').innerText = `${tickTime}`;
     document.getElementById('time-render').innerText = `${renderTime}`;
+    if (process.env.NODE_ENV === 'development') {
+      const aliveCells = this.grid.filter((c) => c !== DEAD);
+      const hueSum = aliveCells.reduce((a, b) => a + b, 0);
+      const hueAvg = hueSum / aliveCells.length;
+      document.getElementById('hue-avg').innerText = `${hueAvg}`;
+    }
   }
 }
