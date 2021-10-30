@@ -1,4 +1,13 @@
+import { circularMean, clampDeg } from './util/math';
+
 const SQUARE_SIZE = 4;
+const COLOR_BANDS = 10;
+
+/**
+ * Valid colors are integers in range [0, 360[
+ */
+type Cell = number;
+const DEAD = -1;
 
 export default class Grid {
   private readonly canvas: HTMLCanvasElement;
@@ -7,7 +16,7 @@ export default class Grid {
 
   private readonly width: number;
 
-  private grid: boolean[][];
+  private grid: Int16Array;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -21,14 +30,24 @@ export default class Grid {
    * (Re-)initialize grid with random values.
    */
   private randomizeGrid() {
-    this.grid = new Array(this.height);
+    const colorBandSize = this.height / COLOR_BANDS;
+
+    this.grid = new Int16Array(this.height * this.width);
     for (let y = 0; y < this.height; y += 1) {
-      const line = new Array(this.width);
-      this.grid[y] = line;
       for (let x = 0; x < this.width; x += 1) {
-        line[x] = Math.random() < 0.5;
+        const alive = Math.random() < 0.5;
+        this.grid[(y * this.width) + x] = alive ? clampDeg((y / colorBandSize) * 360) : DEAD;
       }
     }
+  }
+
+  private getCellUnsafe(x: number, y: number): Cell {
+    return this.grid[(y * this.width) + x];
+  }
+
+  private getCell(x: number, y: number): Cell {
+    if (x < 0 || x > this.width || y < 0 || y > this.height) return DEAD;
+    return this.getCellUnsafe(x, y);
   }
 
   /**
@@ -37,10 +56,11 @@ export default class Grid {
   private render() {
     const context = this.canvas.getContext('2d');
     context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    context.fillStyle = 'white';
     for (let y = 0; y < this.height; y += 1) {
       for (let x = 0; x < this.width; x += 1) {
-        if (this.grid[y][x]) {
+        const cell = this.getCellUnsafe(x, y);
+        if (cell !== DEAD) {
+          context.fillStyle = `hsl(${cell}, 65%, 50%)`;
           context.fillRect(
             x * SQUARE_SIZE, y * SQUARE_SIZE,
             SQUARE_SIZE, SQUARE_SIZE,
@@ -50,36 +70,27 @@ export default class Grid {
     }
   }
 
-  /**
-   * Count how many neighboring cells are currently alive.
-   *
-   * This coerces undefined to false with !!, then coerces the boolean to a
-   * number by addition. It's ugly but multiple times faster than including
-   * type checks.
-   */
-  private countCellNeighbors(x: number, y: number): number {
-    // @ts-ignore
-    let count: number = !!this.grid[y][x - 1] + !!this.grid[y][x + 1];
-    if (y > 0) {
-      // @ts-ignore
-      count += !!this.grid[y - 1][x - 1] + !!this.grid[y - 1][x] + !!this.grid[y - 1][x + 1];
-    }
+  private updateCell(x: number, y: number): Cell {
+    const neighbors: Cell[] = [
+      this.getCell(x - 1, y - 1), this.getCell(x, y - 1), this.getCell(x + 1, y - 1),
+      this.getCell(x - 1, y), this.getCell(x + 1, y),
+      this.getCell(x - 1, y + 1), this.getCell(x, y + 1), this.getCell(x + 1, y + 1),
+    ];
 
-    if (y < this.height - 1) {
-      // @ts-ignore
-      count += !!this.grid[y + 1][x - 1] + !!this.grid[y + 1][x] + !!this.grid[y + 1][x + 1];
-    }
+    const aliveNeighbors = neighbors.filter((n) => n !== DEAD);
+    if (aliveNeighbors.length < 2 || aliveNeighbors.length > 3) return DEAD;
 
-    return count;
+    const current = this.getCellUnsafe(x, y);
+    if (current !== DEAD || (aliveNeighbors.length === 2)) return current;
+
+    return circularMean(aliveNeighbors[0], aliveNeighbors[1], aliveNeighbors[2]);
   }
 
   private tick() {
-    const target: boolean[][] = new Array(this.height);
+    const target = new Int16Array(this.grid.length);
     for (let y = 0; y < this.height; y += 1) {
-      target[y] = new Array(this.width);
       for (let x = 0; x < this.width; x += 1) {
-        const neighbors = this.countCellNeighbors(x, y);
-        target[y][x] = (neighbors === 3) || ((neighbors === 2) && this.grid[y][x]);
+        target[(y * this.width) + x] = this.updateCell(x, y);
       }
     }
     this.grid = target;
