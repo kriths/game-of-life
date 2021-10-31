@@ -44,7 +44,7 @@ export default class Grid {
   }
 
   private getCell(x: number, y: number): Cell {
-    if (x < 0 || x > this.width || y < 0 || y > this.height) return DEAD;
+    if (x < 0 || x > this.width - 1 || y < 0 || y > this.height - 1) return DEAD;
     return this.getCellUnsafe(x, y);
   }
 
